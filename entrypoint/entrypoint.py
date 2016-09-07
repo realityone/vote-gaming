@@ -20,6 +20,13 @@ RESULT_IMAGE = 'daocloud.io/realityone/vg-result'
 LOG = logging.getLogger(__name__)
 
 
+class AppCofig(object):
+    SQLALCHEMY_DATABASE_URI = os.getenv(
+        'SQLALCHEMY_DATABASE_URI',
+        'mysql+mysqlconnector://root:root@192.168.100.102:3306/vote'
+    )
+
+
 class ReverseProxyUtils(object):
 
     @classmethod
@@ -80,7 +87,7 @@ class ReverseProxyUtils(object):
 def default_container_config():
     return {
         'DEBUG': 'False',
-        'SQLALCHEMY_DATABASE_URI': 'mysql+mysqlconnector://root:root@192.168.100.102:3306/vote'
+        'SQLALCHEMY_DATABASE_URI': AppCofig.SQLALCHEMY_DATABASE_URI
     }
 
 
