@@ -30,6 +30,7 @@ class AppConfig(object):
 
 
 class ReverseProxyUtils(object):
+
     @classmethod
     def header_matched(cls, name):
         return name.lower() in ['user-agent', 'host', 'cookie', 'content-type']
@@ -43,7 +44,7 @@ class ReverseProxyUtils(object):
             name: value
             for name, value in request.headers
             if cls.header_matched(name)
-            }
+        }
 
     @classmethod
     def get_headers_from_response(cls, response):
@@ -54,7 +55,7 @@ class ReverseProxyUtils(object):
             name: value
             for name, value in response.headers.iteritems()
             if cls.header_matched(name)
-            }
+        }
 
     @classmethod
     def get_request_params_from_request(cls, request):
@@ -71,7 +72,7 @@ class ReverseProxyUtils(object):
         return request.data or {
             k: v
             for k, v in request.form.iteritems()
-            }
+        }
 
     @classmethod
     def convert_to_response(cls, response):
@@ -94,32 +95,23 @@ def default_container_environment():
 
 @contextlib.contextmanager
 def running_container(image, port, name, environment=None):
-    try:
-        container = client.inspect_container(name)
-    except NotFound as e:
-        LOG.warning("inspect named container failed: %s", e)
-
-        environment = environment or {}
-        host_config = client.create_host_config(port_bindings={port: None})
-        response = client.create_container(
-            image=image,
-            environment=environment,
-            ports=[port],
-            host_config=host_config,
-            name=name
-        )
-        container_id = response['Id']
-        client.start(container_id)
-        client.pause(container_id)
-    else:
-        container_id = container['Id']
+    environment = environment or {}
+    host_config = client.create_host_config(port_bindings={port: None})
+    response = client.create_container(
+        image=image,
+        environment=environment,
+        ports=[port],
+        host_config=host_config,
+        name=name
+    )
+    container_id = response['Id']
+    client.start(container_id)
 
     try:
-        client.unpause(container_id)
         yield client.inspect_container(container_id)
     finally:
-        client.pause(container_id)
-        # client.remove_container(container_id)
+        client.kill(container_id)
+        client.remove_container(container_id)
 
 
 @app.route('/')
@@ -166,10 +158,13 @@ def vote_api():
                 response = s.request(
                     request.method,
                     url,
-                    headers=ReverseProxyUtils.get_headers_from_request(request),
+                    headers=ReverseProxyUtils.get_headers_from_request(
+                        request),
                     allow_redirects=True,
-                    params=ReverseProxyUtils.get_request_params_from_request(request),
-                    data=ReverseProxyUtils.get_request_data_from_request(request),
+                    params=ReverseProxyUtils.get_request_params_from_request(
+                        request),
+                    data=ReverseProxyUtils.get_request_data_from_request(
+                        request),
                     timeout=3
                 )
             except IOError as e:
