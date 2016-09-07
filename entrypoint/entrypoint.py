@@ -146,7 +146,7 @@ def running_container(image, port, name, environment=None):
         etcd_client.update(etcd_obj)
     except etcd.EtcdKeyNotFound:
         LOG.debug("Container not found in etcd, will create it first.")
-        etcd_client.write(key, container_id, ttl=AppConfig.TTL, prevExist=False)
+        etcd_client.set(key, container_id, ttl=AppConfig.TTL)
 
     yield container
 
