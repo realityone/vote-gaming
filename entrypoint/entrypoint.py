@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 
-import os
 import contextlib
 import logging
 import time
 
+import os
 import requests
 from docker import AutoVersionClient
+from docker.errors import NotFound
 from flask import Flask
 from flask import Response
 from flask import render_template
@@ -21,7 +22,7 @@ RESULT_IMAGE = 'daocloud.io/realityone/vg-result'
 LOG = logging.getLogger(__name__)
 
 
-class AppCofig(object):
+class AppConfig(object):
     SQLALCHEMY_DATABASE_URI = os.getenv(
         'SQLALCHEMY_DATABASE_URI',
         'mysql+mysqlconnector://root:root@192.168.100.102:3306/vote'
@@ -29,7 +30,6 @@ class AppCofig(object):
 
 
 class ReverseProxyUtils(object):
-
     @classmethod
     def header_matched(cls, name):
         return name.lower() in ['user-agent', 'host', 'cookie', 'content-type']
@@ -43,7 +43,7 @@ class ReverseProxyUtils(object):
             name: value
             for name, value in request.headers
             if cls.header_matched(name)
-        }
+            }
 
     @classmethod
     def get_headers_from_response(cls, response):
@@ -54,7 +54,7 @@ class ReverseProxyUtils(object):
             name: value
             for name, value in response.headers.iteritems()
             if cls.header_matched(name)
-        }
+            }
 
     @classmethod
     def get_request_params_from_request(cls, request):
@@ -71,7 +71,7 @@ class ReverseProxyUtils(object):
         return request.data or {
             k: v
             for k, v in request.form.iteritems()
-        }
+            }
 
     @classmethod
     def convert_to_response(cls, response):
@@ -85,31 +85,41 @@ class ReverseProxyUtils(object):
         )
 
 
-def default_container_config():
+def default_container_environment():
     return {
         'DEBUG': 'False',
-        'SQLALCHEMY_DATABASE_URI': AppCofig.SQLALCHEMY_DATABASE_URI
+        'SQLALCHEMY_DATABASE_URI': AppConfig.SQLALCHEMY_DATABASE_URI
     }
 
 
 @contextlib.contextmanager
-def running_container(image, port, environment=None):
-    environment = environment or {}
-    host_config = client.create_host_config(port_bindings={port: None})
-    response = client.create_container(
-        image=image,
-        environment=environment,
-        ports=[port],
-        host_config=host_config
-    )
-    container_id = response['Id']
-    client.start(container_id)
+def running_container(image, port, name, environment=None):
+    try:
+        container = client.inspect_container(name)
+    except NotFound as e:
+        LOG.warning("inspect named container failed: %s", e)
+
+        environment = environment or {}
+        host_config = client.create_host_config(port_bindings={port: None})
+        response = client.create_container(
+            image=image,
+            environment=environment,
+            ports=[port],
+            host_config=host_config,
+            name=name
+        )
+        container_id = response['Id']
+        client.start(container_id)
+        client.pause(container_id)
+    else:
+        container_id = container['Id']
 
     try:
+        client.unpause(container_id)
         yield client.inspect_container(container_id)
     finally:
-        client.kill(container_id)
-        client.remove_container(container_id)
+        client.pause(container_id)
+        # client.remove_container(container_id)
 
 
 @app.route('/')
@@ -138,19 +148,18 @@ def extract_container_ip(container):
 @app.route('/vote', methods=['GET', 'POST'])
 @app.route('/result', methods=['GET', 'POST'])
 def vote_api():
-    def path_to_config():
-        path = request.path
-        return {
-            '/vote': (VOTE_IMAGE, 5000),
-            '/result': (RESULT_IMAGE, 5001)
-        }[path]
-
-    cfg = default_container_config()
+    path_to_config = {
+        '/vote': ('vg-vote', VOTE_IMAGE, 5000),
+        '/result': ('vg-result', RESULT_IMAGE, 5001)
+    }
+    path = request.path
+    environment = default_container_environment()
     s = requests.session()
-    image, port = path_to_config()
-    with running_container(image, port, environment=cfg) as container:
+    name, image, port = path_to_config[path]
+
+    with running_container(image, port, name, environment=environment) as container:
         container_ip = extract_container_ip(container)
-        url = make_url(container_ip, port, request.path)
+        url = make_url(container_ip, port, path)
         response = None
         while True:
             try:
