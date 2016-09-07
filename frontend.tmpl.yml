@@ -1,0 +1,6 @@
+ui:
+  image: daocloud.io/realityone/vg-ui
+  ports:
+    - 5004:80
+  environment:
+    - ENV_API=__ENTRYPOINT__

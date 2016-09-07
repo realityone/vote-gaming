@@ -23,6 +23,10 @@ up-entrypoint:
 	sed "s/__HOSTIP__/$(HOSTIP)/g" entrypoint.tmpl.yml > entrypoint.yml
 	docker-compose -f entrypoint.yml up -d
 
+up-frontend:
+	sed "s/__ENTRYPOINT__/$(ENTRYPOINT)/g" frontend.tmpl.yml > frontend.yml
+	docker-compose -f frontend.yml up -d
+
 up: up-backend up-entrypoint
 
 .PHONY: all
