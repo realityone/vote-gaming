@@ -69,7 +69,7 @@
                     });
                 };
 
-                $.post('http://54.238.208.175:5003/vote', {
+                $.post('http://{{ env_api }}/vote', {
                     option: option,
                 });
             }

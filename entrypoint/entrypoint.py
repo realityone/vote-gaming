@@ -42,6 +42,10 @@ class AppConfig(object):
         'ETCD_URL',
         'http://192.168.100.102:12379'
     )
+    ENV_API = os.getenv(
+        'ENV_API',
+        '54.238.140.58:8081'
+    )
     TTL = 1
 
 
@@ -129,16 +133,22 @@ def running_container(image, port, name, environment=None):
                 'Name': 'always'
             }
         )
-        response = client.create_container(
+        try:
+            response = client.create_container(
             image=image,
             environment=environment,
             ports=[port],
             host_config=host_config,
             name=name
         )
-        container_id = response['Id']
-        client.start(container_id)
-        container = client.inspect_container(container_id)
+        except errors.APIError as e:
+            LOG.error("Create container failed maybe created by others: %s.", e)
+            time.sleep(1)
+        else:
+            container_id = response['Id']
+            client.start(container_id)
+        finally:
+            container = client.inspect_container(name)
 
     container_id = container['Id']
     key = death_key(container_id)
@@ -161,7 +171,7 @@ def running_container(image, port, name, environment=None):
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('index.html', env_api=AppConfig.ENV_API)
 
 
 @app.route('/vote.html')
