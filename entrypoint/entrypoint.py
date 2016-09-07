@@ -132,7 +132,7 @@ def make_url(ip, port, path):
 
 
 def extract_container_ip(container):
-    return container['NetworkSettings']['Ports']
+    return container['NetworkSettings']['IPAddress']
 
 
 @app.route('/vote', methods=['GET', 'POST'])
@@ -151,20 +151,17 @@ def vote_api():
     with running_container(image, port, environment=cfg) as container:
         container_ip = extract_container_ip(container)
         url = make_url(container_ip, port, request.path)
-        print url
         response = None
         while True:
             try:
                 response = s.request(
                     request.method,
                     url,
-                    headers=ReverseProxyUtils.get_headers_from_request(
-                        request),
+                    headers=ReverseProxyUtils.get_headers_from_request(request),
                     allow_redirects=True,
-                    params=ReverseProxyUtils.get_request_params_from_request(
-                        request),
-                    data=ReverseProxyUtils.get_request_data_from_request(
-                        request)
+                    params=ReverseProxyUtils.get_request_params_from_request(request),
+                    data=ReverseProxyUtils.get_request_data_from_request(request),
+                    timeout=3
                 )
             except IOError as e:
                 LOG.warning("Request to upstream failed: %s.", e)
