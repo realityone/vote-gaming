@@ -13,10 +13,14 @@ image:
 	docker pull daocloud.io/realityone/vg-mqueue
 	docker pull daocloud.io/realityone/vg-worker
 
-up:
-	sed "s/__HOSTIP__/$(HOSTIP)/g" database.tmpl.yml > database.yml
+up-backend:
+	sed "s/__HOSTIP__/$(HOSTIP)/g" backend.tmpl.yml > backend.yml
+	docker-compose -f backend.yml up -d
+
+up-entrypoint:
 	sed "s/__HOSTIP__/$(HOSTIP)/g" entrypoint.tmpl.yml > entrypoint.yml
-	docker-compose -f database.yml up -d
 	docker-compose -f entrypoint.yml up -d
+
+up: up-backend up-entrypoint
 
 .PHONY: all
