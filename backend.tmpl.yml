@@ -1,0 +1,31 @@
+mqueue:
+  image: daocloud.io/realityone/vg-mqueue
+  ports:
+    - 12379:2379
+    - 12380:12380
+  environment:
+    - ETCD_ADVERTISE_CLIENT_URLS=http://__HOSTIP__:12379
+    - ETCD_LISTEN_CLIENT_URLS=http://0.0.0.0:2379
+    - ETCD_LISTEN_PEER_URLS=http://0.0.0.0:12380
+    - ETCD_INITIAL_ADVERTISE_PEER_URLS=http://__HOSTIP__:12380
+    - ETCD_CORS=*
+    - ETCD_INITIAL_CLUSTER_STATE=new
+    - ETCD_INITIAL_CLUSTER=vg-mqueue-__HOSTIP__=http://__HOSTIP__:12380
+  volumes:
+    - /data
+  command: '--name vg-mqueue-__HOSTIP__ --data-dir /data'
+
+database:
+  image: daocloud.io/realityone/vg-database
+  ports:
+    - 3306:3306
+  environment:
+    - MYSQL_ROOT_PASSWORD=root
+    - MYSQL_DATABASE=vote
+
+worker:
+  image: daocloud.io/realityone/vg-worker
+  environment:
+    - ETCD_URL=http://__HOSTIP__:12379
+  volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
