@@ -1,7 +1,7 @@
-FROM daocloud.io/python:2.7.12-alpine
+FROM daocloud.io/python:2.7.12
 
-RUN pip install etcd && \
-    pip install docker-py
+ADD ./requirements.txt /usr/src/app/requirements.txt
+RUN pip install -r /usr/src/app/requirements.txt
 
 ADD . /usr/src/app
 WORKDIR /usr/src/app

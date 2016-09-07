@@ -34,4 +34,7 @@ mqueue:
 
 worker:
   image: daocloud.io/realityone/vg-worker
-  
+  environment:
+    - ETCD_URL=192.168.100.102
+  volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
