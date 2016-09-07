@@ -2,9 +2,8 @@ import logging
 import signal
 import sys
 
-from docker import errors as docker_errors
-
 from config import ETCD_URL
+from docker import errors as docker_errors
 from libwatcher import get_death_watcher
 
 _log = logging.getLogger(__name__)

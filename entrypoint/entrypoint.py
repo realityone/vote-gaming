@@ -2,12 +2,15 @@
 
 import contextlib
 import logging
+import socket
 import time
+from urlparse import urlparse
 
+import etcd
 import os
 import requests
 from docker import AutoVersionClient
-from docker.errors import NotFound
+from docker import errors
 from flask import Flask
 from flask import Response
 from flask import render_template
@@ -23,16 +26,30 @@ RESULT_IMAGE = 'daocloud.io/realityone/vg-result'
 LOG = logging.getLogger(__name__)
 cors = CORS(app)
 
+HOST_NAME = socket.gethostname()
+PATH_TO_CONFIG = {
+    '/vote': ('vg-vote-{}'.format(HOST_NAME), VOTE_IMAGE, 5000),
+    '/result': ('vg-result-{}'.format(HOST_NAME), RESULT_IMAGE, 5001)
+}
+
 
 class AppConfig(object):
     SQLALCHEMY_DATABASE_URI = os.getenv(
         'SQLALCHEMY_DATABASE_URI',
         'mysql+mysqlconnector://root:root@192.168.100.102:3306/vote'
     )
+    ETCD_URL = os.getenv(
+        'ETCD_URL',
+        'http://192.168.100.102:12379'
+    )
+    TTL = 1
+
+
+etcd_url_parts = urlparse(AppConfig.ETCD_URL)
+etcd_client = etcd.Client(host=etcd_url_parts.hostname, port=etcd_url_parts.port)
 
 
 class ReverseProxyUtils(object):
-
     @classmethod
     def header_matched(cls, name):
         return name.lower() in ['user-agent', 'host', 'cookie', 'content-type']
@@ -46,7 +63,7 @@ class ReverseProxyUtils(object):
             name: value
             for name, value in request.headers
             if cls.header_matched(name)
-        }
+            }
 
     @classmethod
     def get_headers_from_response(cls, response):
@@ -57,7 +74,7 @@ class ReverseProxyUtils(object):
             name: value
             for name, value in response.headers.iteritems()
             if cls.header_matched(name)
-        }
+            }
 
     @classmethod
     def get_request_params_from_request(cls, request):
@@ -74,7 +91,7 @@ class ReverseProxyUtils(object):
         return request.data or {
             k: v
             for k, v in request.form.iteritems()
-        }
+            }
 
     @classmethod
     def convert_to_response(cls, response):
@@ -97,23 +114,41 @@ def default_container_environment():
 
 @contextlib.contextmanager
 def running_container(image, port, name, environment=None):
-    environment = environment or {}
-    host_config = client.create_host_config(port_bindings={port: None})
-    response = client.create_container(
-        image=image,
-        environment=environment,
-        ports=[port],
-        host_config=host_config,
-        name=name
-    )
-    container_id = response['Id']
-    client.start(container_id)
+    def death_key(container_id):
+        return '/death-note/v1/containers/{}'.format(container_id)
 
     try:
-        yield client.inspect_container(container_id)
-    finally:
-        client.kill(container_id)
-        client.remove_container(container_id)
+        container = client.inspect_container(name)
+    except errors.NotFound as e:
+        LOG.warning("inspect container %s failed: %s, will create it.", name, e)
+
+        environment = environment or {}
+        host_config = client.create_host_config(port_bindings={port: None})
+        response = client.create_container(
+            image=image,
+            environment=environment,
+            ports=[port],
+            host_config=host_config,
+            name=name
+        )
+        container_id = response['Id']
+        client.start(container_id)
+        container = client.inspect_container(container_id)
+
+    container_id = container['Id']
+    key = death_key(container_id)
+    try:
+        etcd_obj = etcd_client.get(key)
+
+        LOG.debug("Container is found in etcd, will refresh his ttl.")
+
+        etcd_obj.value, etcd_obj.ttl = container_id, AppConfig.TTL + etcd_obj.ttl
+        etcd_client.update(etcd_obj)
+    except etcd.EtcdKeyNotFound:
+        LOG.debug("Container not found in etcd, will create it first.")
+        etcd_client.set(key, container_id, ttl=AppConfig.TTL)
+
+    yield container
 
 
 @app.route('/')
@@ -142,14 +177,10 @@ def extract_container_ip(container):
 @app.route('/vote', methods=['GET', 'POST'])
 @app.route('/result', methods=['GET', 'POST'])
 def vote_api():
-    path_to_config = {
-        '/vote': (None, VOTE_IMAGE, 5000),
-        '/result': (None, RESULT_IMAGE, 5001)
-    }
     path = request.path
     environment = default_container_environment()
     s = requests.session()
-    name, image, port = path_to_config[path]
+    name, image, port = PATH_TO_CONFIG[path]
 
     with running_container(image, port, name, environment=environment) as container:
         container_ip = extract_container_ip(container)
@@ -160,13 +191,10 @@ def vote_api():
                 response = s.request(
                     request.method,
                     url,
-                    headers=ReverseProxyUtils.get_headers_from_request(
-                        request),
+                    headers=ReverseProxyUtils.get_headers_from_request(request),
                     allow_redirects=True,
-                    params=ReverseProxyUtils.get_request_params_from_request(
-                        request),
-                    data=ReverseProxyUtils.get_request_data_from_request(
-                        request),
+                    params=ReverseProxyUtils.get_request_params_from_request(request),
+                    data=ReverseProxyUtils.get_request_data_from_request(request),
                     timeout=3
                 )
             except IOError as e:
