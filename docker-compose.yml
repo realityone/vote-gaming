@@ -8,7 +8,7 @@ entrypoint:
     - /var/run/docker.sock:/var/run/docker.sock
 
 database:
-  image: daocloud.io/mysql
+  image: daocloud.io/realityone/vg-database
   ports:
     - 3306:3306
   environment:
