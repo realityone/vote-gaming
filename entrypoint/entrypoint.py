@@ -24,7 +24,7 @@ class ReverseProxyUtils(object):
 
     @classmethod
     def header_matched(cls, name):
-        return name in ['User-Agent', 'Host', 'Cookie']
+        return name.lower() in ['user-agent', 'host', 'cookie', 'content-type']
 
     @classmethod
     def get_headers_from_request(cls, request):
