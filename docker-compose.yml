@@ -1,5 +1,7 @@
 entrypoint:
   image: daocloud.io/realityone/vg-entrypoint
+  environment:
+    SQLALCHEMY_DATABASE_URI: "mysql+mysqlconnector://root:root@192.168.100.102:3306/vote"
   ports:
     - 5003:5003
   volumes:
