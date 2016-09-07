@@ -158,7 +158,7 @@ def running_container(image, port, name, environment=None):
 
 @app.route('/')
 def index():
-    return "Hello, World"
+    return render_template('index.html')
 
 
 @app.route('/vote.html')

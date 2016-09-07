@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Welcome to Vue</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0" />
+    <link rel="stylesheet" type="text/css" href="/static/main.css">
+    <script src="/static/vue.min.js"></script>
+    <script src="/static/jquery.min.js"></script>
+</head>
+
+<body style="background-color: #333; font-size: 16px;">
+    <div id="app" class="app">
+        <div class="layout-half">
+            <div v-el:yes-block class="ui button circular yes big" @touchstart="clickYes">是</div>
+        </div>
+        <div class="layout-text">&lt; PHP是不是最好的语言 &gt;</div>
+        <div class="layout-half">
+            <div v-el:no-block class="ui button circular no big" @touchstart="clickNo">否</div>
+        </div>
+    </div>
+    <script>
+    new Vue({
+        el: '#app',
+        data: {
+            // greeting: 'Welcome to your Vue.js app!',
+            // docsURL: 'http://vuejs.org/guide/',
+            // gitterURL: 'https://gitter.im/vuejs/vue',
+            // forumURL: 'http://forum.vuejs.org/',
+            // buttonCls: null,
+        },
+
+        created: function() {
+            var audio = document.createElement('audio');
+            audio.src = '/static/haha.wav';
+            document.body.insertBefore(audio, document.body.firstChild);
+            this.audio = audio;
+        },
+        methods: {
+            humanizeURL: function(url) {
+                return url
+                    .replace(/^https?:\/\//, '')
+                    .replace(/\/$/, '')
+            },
+            clickYes: function() {
+                var el = $(this.$els.yesBlock);
+                this.click('option_a', el);
+
+            },
+            clickNo: function() {
+                var el = $(this.$els.noBlock);
+                this.click('option_b', el);
+
+            },
+            click: function(option, el) {
+                // console.log(this.$els.yesBlock)
+                // var el = $(this.$els.yesBlock);
+                var node = $('<div class="tip">+1</div>');
+                el.append(node);
+                testAnim(node);
+
+                // 播放声音
+                this.audio.play();
+
+                function testAnim(node) {
+                    $(node).addClass('fadeOutUp animated').one('webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend', function() {
+                        $(this).remove();
+                    });
+                };
+
+                $.post('http://54.238.208.175:5003/vote', {
+                    option: option,
+                });
+            }
+        }
+    })
+
+
+    function testAnim(x) {
+        $('#animationSandbox').removeClass().addClass(x + ' animated').one('webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend', function() {
+            $(this).removeClass();
+        });
+    };
+    </script>
+</body>
+
+</html>

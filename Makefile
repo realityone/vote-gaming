@@ -4,6 +4,7 @@ all:
 	$(MAKE) -C database release
 	$(MAKE) -C entrypoint release
 	$(MAKE) -C worker release
+	$(MAKE) -C ui release
 
 image:
 	docker pull daocloud.io/realityone/vg-result
@@ -12,6 +13,7 @@ image:
 	docker pull daocloud.io/realityone/vg-entrypoint
 	docker pull daocloud.io/realityone/vg-mqueue
 	docker pull daocloud.io/realityone/vg-worker
+	docker pull daocloud.io/realityone/vg-ui
 
 up-backend:
 	sed "s/__HOSTIP__/$(HOSTIP)/g" backend.tmpl.yml > backend.yml
