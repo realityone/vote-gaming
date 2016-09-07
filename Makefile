@@ -9,5 +9,6 @@ image:
 	docker pull daocloud.io/realityone/vg-vote
 	docker pull daocloud.io/realityone/vg-database
 	docker pull daocloud.io/realityone/vg-entrypoint
+	docker pull daocloud.io/realityone/vg-mqueue
 
 .PHONY: all
