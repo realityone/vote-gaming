@@ -2,11 +2,10 @@ from __future__ import absolute_import
 
 import logging
 
+import config
 import docker
 import docker.errors
 import etcd
-
-import config
 
 _log = logging.getLogger(__name__)
 
