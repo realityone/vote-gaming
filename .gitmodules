@@ -1,0 +1,3 @@
+[submodule "ui"]
+	path = ui
+	url = git@github.com:tankiJong/visual-container-dist.git

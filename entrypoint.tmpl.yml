@@ -7,10 +7,3 @@ entrypoint:
     - 5003:5003
   volumes:
     - /var/run/docker.sock:/var/run/docker.sock
-
-worker:
-  image: daocloud.io/realityone/vg-worker
-  environment:
-    - ETCD_URL=http://__HOSTIP__:12379
-  volumes:
-    - /var/run/docker.sock:/var/run/docker.sock
