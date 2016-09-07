@@ -1,0 +1,32 @@
+entrypoint:
+  image: daocloud.io/realityone/vg-entrypoint
+  environment:
+    SQLALCHEMY_DATABASE_URI: "mysql+mysqlconnector://root:root@__HOSTIP__:3306/vote"
+  ports:
+    - 5003:5003
+  volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+
+database:
+  image: daocloud.io/realityone/vg-database
+  ports:
+    - 3306:3306
+  environment:
+    - MYSQL_ROOT_PASSWORD=root
+    - MYSQL_DATABASE=vote
+
+mqueue:
+  image: daocloud.io/realityone/vg-mqueue
+  ports:
+    - 12379:2379
+    - 12380:12380
+  environment:
+    - ETCD_ADVERTISE_CLIENT_URLS=http://__HOSTIP__:12379
+    - ETCD_LISTEN_CLIENT_URLS=http://0.0.0.0:2379
+    - ETCD_LISTEN_PEER_URLS=http://0.0.0.0:12380
+    - ETCD_INITIAL_ADVERTISE_PEER_URLS=http://__HOSTIP__:12380
+    - ETCD_CORS=*
+    - ETCD_INITIAL_CLUSTER_STATE=new
+    - ETCD_INITIAL_CLUSTER=dce-etcd-__HOSTIP__=http://__HOSTIP__:12380
+  volumes:
+    - /data
