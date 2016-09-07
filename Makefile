@@ -3,6 +3,7 @@ all:
 	$(MAKE) -C vote release
 	$(MAKE) -C database release
 	$(MAKE) -C entrypoint release
+	$(MAKE) -C worker release
 
 image:
 	docker pull daocloud.io/realityone/vg-result
@@ -10,5 +11,6 @@ image:
 	docker pull daocloud.io/realityone/vg-database
 	docker pull daocloud.io/realityone/vg-entrypoint
 	docker pull daocloud.io/realityone/vg-mqueue
+	docker pull daocloud.io/realityone/vg-worker
 
 .PHONY: all

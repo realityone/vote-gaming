@@ -1,12 +1,10 @@
 import logging
 import signal
 import sys
-import time
-import threading
+
+from docker import errors as docker_errors
 
 from config import ETCD_URL
-from config import DOCKER_URL
-from docker import errors as docker_errors
 from libwatcher import get_death_watcher
 
 _log = logging.getLogger(__name__)
@@ -21,41 +19,11 @@ def parse_container_id(key):
     return key.split('/')[-1]
 
 
-paused_containers = {}
-stopped_containers = {}
-
-FREEZE_SECONDS=10
-
-def freezer():
-    _log.debug("Start Death Watcher...")
-    death_watcher = get_death_watcher(DOCKER_URL, ETCD_URL)
-    while True:
-        cur = time.time()
-        for c, t in paused_containers.items():
-            if cur - t > FREEZE_SECONDS:
-                try:
-                    death_watcher.unpause_container(c)
-                    death_watcher.stop_container(c)
-                except Exception, e:
-                    _log.debug("Stop Container Failed, %s", str(e))
-                else:
-                    _log.debug("Stop Container Succeed, %s", c)
-                    stopped_containers[c] = cur
-                    del paused_containers[c]
-
-                break
-        else:
-            time.sleep(1)
-
-
 def start_worker():
     signal.signal(signal.SIGINT, signal_handler)
-    
-    freezer_thread = threading.Thread(target=freezer)
-    #freezer_thread.start()
 
     _log.debug("Create Death Watcher...")
-    death_watcher = get_death_watcher(DOCKER_URL, ETCD_URL)
+    death_watcher = get_death_watcher(ETCD_URL)
     for o in death_watcher.watch_containers(timeout=0):
         _log.debug("Watching All Containers...")
         try:
@@ -75,15 +43,8 @@ def start_worker():
                        o.action, action, container_id)
             if action == 'pause':
                 death_watcher.pause_container(container_id)
-                paused_containers[container_id] = time.time()
             elif action == 'unpause':
-                if container_id in stopped_containers:
-                    death_watcher.start_container(container_id)
-                    del stopped_containers[container_id]
-                else:
-                    death_watcher.unpause_container(container_id)
-                    del paused_containers[container_id]
-                
+                death_watcher.unpause_container(container_id)
         except docker_errors.APIError, e:
             logging.error("Docker APIError, Refresh Container failed: %s.", e.explanation)
         except Exception, e:

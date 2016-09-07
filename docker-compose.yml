@@ -31,3 +31,5 @@ mqueue:
   volumes:
     - /data
   command: '--name vg-mqueue-192.168.100.102 --data-dir /data'
+
+

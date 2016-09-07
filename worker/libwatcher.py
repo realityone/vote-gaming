@@ -11,11 +11,9 @@ import config
 _log = logging.getLogger(__name__)
 
 
-def get_death_watcher(docker_url, etcd_url):
+def get_death_watcher(etcd_url):
     """
     Should always use this function.
-    @param docker_url:
-    @type docker_url: str
     @param etcd_url:
     @type etcd_url: str
     @return:
@@ -27,7 +25,7 @@ def get_death_watcher(docker_url, etcd_url):
     etcd_host, etcd_port = etcd_url_parts.hostname, etcd_url_parts.port
 
     return DeathWatcher(etcd.Client(host=etcd_host, port=etcd_port),
-                        docker.AutoVersionClient(base_url=docker_url))
+                        docker.AutoVersionClient.from_env())
 
 
 class DeathWatcher(object):
@@ -39,7 +37,7 @@ class DeathWatcher(object):
         @type docker_client: docker.Client
         """
         self.etcd_client = etcd_client
-        self.swarm_client = docker_client
+        self.docker_client = docker_client
         self._containers_dir = containers_dir
 
         # ensure containers dir exists
@@ -52,7 +50,7 @@ class DeathWatcher(object):
             self.etcd_client.write(self._containers_dir, value=None, dir=True, prevExist=False)
 
     def inspect_container(self, container_id):
-        return self.swarm_client.inspect_container(container_id)
+        return self.docker_client.inspect_container(container_id)
 
     def container_key(self, container_id):
         return self._containers_dir + container_id
@@ -70,7 +68,7 @@ class DeathWatcher(object):
 
     def refresh_container_ttl(self, container_id, ttl=10):
         try:
-            container = self.swarm_client.inspect_container(container_id)
+            container = self.docker_client.inspect_container(container_id)
         except docker.errors.NotFound:
             _log.error("Container %s not found, maybe has been deleted.")
             return
@@ -91,17 +89,17 @@ class DeathWatcher(object):
         return etcd_obj
 
     def pause_container(self, container_id):
-        return self.swarm_client.pause(container=container_id)
+        return self.docker_client.pause(container=container_id)
 
     def unpause_container(self, container_id):
-        container_data = self.swarm_client.inspect_container(container_id)
+        container_data = self.docker_client.inspect_container(container_id)
         if container_data.get('State', {}).get('Status') == 'paused':
-            return self.swarm_client.unpause(container=container_id)
+            return self.docker_client.unpause(container=container_id)
         else:
             _log.debug("Container is already running, skip this event.")
 
     def stop_container(self, container_id):
-        return self.swarm_client.stop(container_id)
+        return self.docker_client.stop(container_id)
 
     def start_container(self, container_id):
-        return self.swarm_client.start(container_id)
+        return self.docker_client.start(container_id)

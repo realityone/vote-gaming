@@ -31,3 +31,7 @@ mqueue:
   volumes:
     - /data
   command: '--name vg-mqueue-__HOSTIP__ --data-dir /data'
+
+worker:
+  image: daocloud.io/realityone/vg-worker
+  
