@@ -14,8 +14,8 @@ image:
 	docker pull daocloud.io/realityone/vg-worker
 
 up:
-	sed "s/__HOSTIP__/$(HOSTIP)" database.tmpl.yml > database.yml
-	sed "s/__HOSTIP__/$(HOSTIP)" entrypoint.tmpl.yml > entrypoint.yml
+	sed "s/__HOSTIP__/$(HOSTIP)/g" database.tmpl.yml > database.yml
+	sed "s/__HOSTIP__/$(HOSTIP)/g" entrypoint.tmpl.yml > entrypoint.yml
 	docker-compose -f database.yml up -d
 	docker-compose -f entrypoint.yml up -d
 
