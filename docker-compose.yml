@@ -1,7 +1,7 @@
 entrypoint:
   image: daocloud.io/realityone/vg-entrypoint
   environment:
-    SQLALCHEMY_DATABASE_URI: "mysql+mysqlconnector://root:root@__HOSTIP__:3306/vote"
+    SQLALCHEMY_DATABASE_URI: "mysql+mysqlconnector://root:root@192.168.100.102:3306/vote"
   ports:
     - 5003:5003
   volumes:
@@ -21,13 +21,13 @@ mqueue:
     - 12379:2379
     - 12380:12380
   environment:
-    - ETCD_ADVERTISE_CLIENT_URLS=http://__HOSTIP__:12379
+    - ETCD_ADVERTISE_CLIENT_URLS=http://192.168.100.102:12379
     - ETCD_LISTEN_CLIENT_URLS=http://0.0.0.0:2379
     - ETCD_LISTEN_PEER_URLS=http://0.0.0.0:12380
-    - ETCD_INITIAL_ADVERTISE_PEER_URLS=http://__HOSTIP__:12380
+    - ETCD_INITIAL_ADVERTISE_PEER_URLS=http://192.168.100.102:12380
     - ETCD_CORS=*
     - ETCD_INITIAL_CLUSTER_STATE=new
-    - ETCD_INITIAL_CLUSTER=vg-mqueue-__HOSTIP__=http://__HOSTIP__:12380
+    - ETCD_INITIAL_CLUSTER=vg-mqueue-192.168.100.102=http://192.168.100.102:12380
   volumes:
     - /data
-  command: '--name vg-mqueue-__HOSTIP__ --data-dir /data'
+  command: '--name vg-mqueue-192.168.100.102 --data-dir /data'
