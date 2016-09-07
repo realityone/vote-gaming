@@ -123,7 +123,12 @@ def running_container(image, port, name, environment=None):
         LOG.warning("inspect container %s failed: %s, will create it.", name, e)
 
         environment = environment or {}
-        host_config = client.create_host_config(port_bindings={port: None})
+        host_config = client.create_host_config(
+            port_bindings={port: None},
+            restart_policy={
+                'Name': 'always'
+            }
+        )
         response = client.create_container(
             image=image,
             environment=environment,
