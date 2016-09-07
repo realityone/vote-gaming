@@ -148,7 +148,10 @@ def running_container(image, port, name, environment=None):
         LOG.debug("Container is found in etcd, will refresh his ttl.")
 
         etcd_obj.ttl = AppConfig.TTL + (etcd_obj.ttl or 1)
-        etcd_client.update(etcd_obj)
+        try:
+            etcd_client.update(etcd_obj)
+        except etcd.EtcdCompareFailed as e:
+            LOG.debug("Etcd atomic update failed: %s, skip it.", e)
     except etcd.EtcdKeyNotFound:
         LOG.debug("Container not found in etcd, will create it first.")
         etcd_client.set(key, container_id, ttl=AppConfig.TTL)
