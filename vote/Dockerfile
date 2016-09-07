@@ -1,4 +1,4 @@
-FROM daocloud.io/python:2.7.12
+FROM daocloud.io/python:2.7.12-alpine
 
 RUN pip install tornado && \ 
     pip install sqlalchemy && \
@@ -8,3 +8,5 @@ ADD ./vote.py /vote.py
 RUN chmod +x vote.py
 
 CMD ["/vote.py"]
+
+EXPOSE 5000

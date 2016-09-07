@@ -1,0 +1,14 @@
+entrypoint:
+  image: daocloud.io/realityone/vg-entrypoint
+  ports:
+    - 5003:5003
+  volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+
+database:
+  image: daocloud.io/mysql
+  ports:
+    - 3306:3306
+  environment:
+    - MYSQL_ROOT_PASSWORD=root
+    - MYSQL_DATABASE=vote

@@ -1,4 +1,4 @@
-FROM daocloud.io/python:2.7.12
+FROM daocloud.io/python:2.7.12-alpine
 
 RUN pip install tornado && \ 
     pip install sqlalchemy && \
@@ -8,3 +8,5 @@ ADD ./result.py /result.py
 RUN chmod +x result.py
 
 CMD ["/result.py"]
+
+EXPOSE 5001
