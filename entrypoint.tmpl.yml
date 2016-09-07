@@ -1,0 +1,16 @@
+entrypoint:
+  image: daocloud.io/realityone/vg-entrypoint
+  environment:
+    SQLALCHEMY_DATABASE_URI: "mysql+mysqlconnector://root:root@__HOSTIP__:3306/vote"
+    ETCD_URL: "http://__HOSTIP__:12379"
+  ports:
+    - 5003:5003
+  volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+
+worker:
+  image: daocloud.io/realityone/vg-worker
+  environment:
+    - ETCD_URL=http://__HOSTIP__:12379
+  volumes:
+    - /var/run/docker.sock:/var/run/docker.sock

@@ -142,11 +142,11 @@ def running_container(image, port, name, environment=None):
 
         LOG.debug("Container is found in etcd, will refresh his ttl.")
 
-        etcd_obj.value, etcd_obj.ttl = container_id, AppConfig.TTL + etcd_obj.ttl
+        etcd_obj.ttl = AppConfig.TTL + (etcd_obj.ttl or 1)
         etcd_client.update(etcd_obj)
     except etcd.EtcdKeyNotFound:
         LOG.debug("Container not found in etcd, will create it first.")
-        etcd_client.set(key, container_id, ttl=AppConfig.TTL)
+        etcd_client.write(key, container_id, ttl=AppConfig.TTL, prevExist=False)
 
     yield container
 

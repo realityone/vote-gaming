@@ -78,7 +78,7 @@ class DeathWatcher(object):
 
             _log.debug("Container is found in etcd, will refresh his ttl.")
 
-            etcd_obj.value, etcd_obj.ttl = container, ttl + etcd_obj.ttl
+            etcd_obj.value, etcd_obj.ttl = container, ttl + (etcd_obj.ttl or 1)
             etcd_obj = self.etcd_client.update(etcd_obj)
         except etcd.EtcdKeyNotFound:
             _log.debug("Container not found in etcd, will create it first.")

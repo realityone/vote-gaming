@@ -1,20 +1,3 @@
-entrypoint:
-  image: daocloud.io/realityone/vg-entrypoint
-  environment:
-    SQLALCHEMY_DATABASE_URI: "mysql+mysqlconnector://root:root@__HOSTIP__:3306/vote"
-  ports:
-    - 5003:5003
-  volumes:
-    - /var/run/docker.sock:/var/run/docker.sock
-
-database:
-  image: daocloud.io/realityone/vg-database
-  ports:
-    - 3306:3306
-  environment:
-    - MYSQL_ROOT_PASSWORD=root
-    - MYSQL_DATABASE=vote
-
 mqueue:
   image: daocloud.io/realityone/vg-mqueue
   ports:
@@ -31,6 +14,14 @@ mqueue:
   volumes:
     - /data
   command: '--name vg-mqueue-__HOSTIP__ --data-dir /data'
+
+database:
+  image: daocloud.io/realityone/vg-database
+  ports:
+    - 3306:3306
+  environment:
+    - MYSQL_ROOT_PASSWORD=root
+    - MYSQL_DATABASE=vote
 
 worker:
   image: daocloud.io/realityone/vg-worker
