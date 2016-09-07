@@ -141,8 +141,8 @@ def extract_container_ip(container):
 @app.route('/result', methods=['GET', 'POST'])
 def vote_api():
     path_to_config = {
-        '/vote': ('vg-vote', VOTE_IMAGE, 5000),
-        '/result': ('vg-result', RESULT_IMAGE, 5001)
+        '/vote': (None, VOTE_IMAGE, 5000),
+        '/result': (None, RESULT_IMAGE, 5001)
     }
     path = request.path
     environment = default_container_environment()
