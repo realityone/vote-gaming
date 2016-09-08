@@ -13,6 +13,7 @@ mqueue:
     - ETCD_INITIAL_CLUSTER=vg-mqueue-__HOSTIP__=http://__HOSTIP__:12380
   volumes:
     - /data
+  restart: always
   command: '--name vg-mqueue-__HOSTIP__ --data-dir /data'
 
 database:
@@ -22,6 +23,7 @@ database:
   environment:
     - MYSQL_ROOT_PASSWORD=root
     - MYSQL_DATABASE=vote
+  restart: always
 
 worker:
   image: daocloud.io/realityone/vg-worker
@@ -29,3 +31,4 @@ worker:
     - ETCD_URL=http://__HOSTIP__:12379
   volumes:
     - /var/run/docker.sock:/var/run/docker.sock
+  restart: always
