@@ -1,5 +1,5 @@
 mqueue:
-  image: daocloud.io/realityone/vg-mqueue
+  image: daocloud.io/alphabeta_com/vg-mqueue
   ports:
     - 12379:2379
     - 12380:12380
@@ -17,7 +17,7 @@ mqueue:
   command: '--name vg-mqueue-__HOSTIP__ --data-dir /data'
 
 database:
-  image: daocloud.io/realityone/vg-database
+  image: daocloud.io/alphabeta_com/vg-database
   ports:
     - 3306:3306
   environment:
@@ -26,7 +26,7 @@ database:
   restart: always
 
 worker:
-  image: daocloud.io/realityone/vg-worker
+  image: daocloud.io/alphabeta_com/vg-worker
   environment:
     - ETCD_URL=http://__HOSTIP__:12379
   volumes:

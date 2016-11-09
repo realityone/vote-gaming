@@ -1,5 +1,5 @@
 ui:
-  image: daocloud.io/realityone/vg-ui
+  image: daocloud.io/alphabeta_com/vg-ui
   ports:
     - 5004:80
   environment:

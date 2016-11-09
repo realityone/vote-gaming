@@ -1,5 +1,5 @@
 entrypoint:
-  image: daocloud.io/realityone/vg-entrypoint
+  image: daocloud.io/alphabeta_com/vg-entrypoint
   environment:
     SQLALCHEMY_DATABASE_URI: "mysql+mysqlconnector://root:root@__HOSTIP__:3306/vote"
     ETCD_URL: "http://__HOSTIP__:12379"
