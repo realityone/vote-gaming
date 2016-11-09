@@ -46,6 +46,10 @@ class AppConfig(object):
         'ENV_API',
         '54.238.140.58:8081'
     )
+    HOST_IP = os.getenv(
+        'HOST_IP',
+        '192.168.2.142'
+    )
     TTL = 1
 
 
@@ -188,8 +192,10 @@ def make_url(ip, port, path):
     return 'http://{}:{}{}'.format(ip, port, path)
 
 
-def extract_container_ip(container):
-    return container['NetworkSettings']['IPAddress']
+def extract_container_endpoint(container, port):
+    container_ip = container['NetworkSettings']['IPAddress']
+    host_port = container['NetworkSettings']['Ports']['{}/tcp'.format(port)][0]['HostPort']
+    return container_ip, host_port
 
 
 @app.route('/vote', methods=['GET', 'POST'])
@@ -201,8 +207,8 @@ def vote_api():
     name, image, port = PATH_TO_CONFIG[path]
 
     with running_container(image, port, name, environment=environment) as container:
-        container_ip = extract_container_ip(container)
-        url = make_url(container_ip, port, path)
+        _, host_port = extract_container_endpoint(container, port)
+        url = make_url(AppConfig.HOST_IP, host_port, path)
         response = None
         while True:
             try:

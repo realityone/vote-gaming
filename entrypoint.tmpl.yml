@@ -4,6 +4,7 @@ entrypoint:
     SQLALCHEMY_DATABASE_URI: "mysql+mysqlconnector://root:root@__HOSTIP__:3306/vote"
     ETCD_URL: "http://__HOSTIP__:12379"
     ENV_API: "__ENTRYPOINT__"
+    HOSTIP: "__HOSTIP__"
   ports:
     - 5003:5003
   volumes:
