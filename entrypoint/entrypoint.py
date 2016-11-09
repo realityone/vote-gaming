@@ -20,8 +20,8 @@ from flask_cors import CORS
 app = Flask(__name__)
 client = AutoVersionClient.from_env()
 
-VOTE_IMAGE = 'daocloud.io/realityone/vg-vote'
-RESULT_IMAGE = 'daocloud.io/realityone/vg-result'
+VOTE_IMAGE = 'daocloud.io/alphabeta_com/vg-vote'
+RESULT_IMAGE = 'daocloud.io/alphabeta_com/vg-result'
 
 LOG = logging.getLogger(__name__)
 cors = CORS(app)

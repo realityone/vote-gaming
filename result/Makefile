@@ -1,5 +1,5 @@
 result:
-	docker build -t daocloud.io/realityone/vg-result .
+	docker build -t daocloud.io/alphabeta_com/vg-result .
 
 release: result
-	docker push daocloud.io/realityone/vg-result
+	docker push daocloud.io/alphabeta_com/vg-result

@@ -1,5 +1,5 @@
 entrypoint:
-	docker build -t daocloud.io/realityone/vg-entrypoint .
+	docker build -t daocloud.io/alphabeta_com/vg-entrypoint .
 
 release: entrypoint
-	docker push daocloud.io/realityone/vg-entrypoint
+	docker push daocloud.io/alphabeta_com/vg-entrypoint

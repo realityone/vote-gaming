@@ -7,13 +7,13 @@ all:
 	$(MAKE) -C ui release
 
 image:
-	docker pull daocloud.io/realityone/vg-result
-	docker pull daocloud.io/realityone/vg-vote
-	docker pull daocloud.io/realityone/vg-database
-	docker pull daocloud.io/realityone/vg-entrypoint
-	docker pull daocloud.io/realityone/vg-mqueue
-	docker pull daocloud.io/realityone/vg-worker
-	docker pull daocloud.io/realityone/vg-ui
+	docker pull daocloud.io/alphabeta_com/vg-result
+	docker pull daocloud.io/alphabeta_com/vg-vote
+	docker pull daocloud.io/alphabeta_com/vg-database
+	docker pull daocloud.io/alphabeta_com/vg-entrypoint
+	docker pull daocloud.io/alphabeta_com/vg-mqueue
+	docker pull daocloud.io/alphabeta_com/vg-worker
+	docker pull daocloud.io/alphabeta_com/vg-ui
 
 up-backend:
 	sed "s/__HOSTIP__/$(HOSTIP)/g" backend.tmpl.yml > backend.yml
